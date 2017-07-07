@@ -1,0 +1,20 @@
+
+# ======================================================================================
+# Script to Deploy VM-300 Bundle 2 VM-Series Firewall into existing environment
+# ======================================================================================
+
+# Create Public IP Addresses (Management and Untrust)
+az network public-ip create --resource-group "ResourceGroup" --location "westeurope" --name "pip-ngfw-management" --allocation-method "Dynamic" --dns-name "ngfw-management"
+az network public-ip create --resource-group "ResourceGroup" --location "westeurope" --name "pip-ngfw-untrust" --allocation-method "Static" --dns-name "ngfw-untrust"
+
+# Create 3x NICS (Management, Untrust and Trust)
+az network nic create --resource-group "ResourceGroup" --name "nic-ngfw-management" --vnet-name "vnet" --subnet "management-subnet" --private-ip-address "10.10.0.4" --public-ip-address "publicip-ngfw01-management" --ip-forwarding
+az network nic create --resource-group "ResourceGroup" --name "nic-ngfw-untrust" --vnet-name "vnet" --subnet "untrust-subnet" --private-ip-address "10.10.1.4" --public-ip-address "publicip-ngfw01-untrust" --ip-forwarding
+az network nic create --resource-group "ResourceGroup" --name "nic-ngfw-trust" --vnet-name "vnet" --subnet "trust-subnet" --private-ip-address "10.10.2.4" --public-ip-address "" --ip-forwarding
+
+# Option 1: Deploy VM with Managed Disks
+az vm create --resource-group "ResourceGroup" --location "westeurope" --name "ngfw" --availability-set "avset-ngfw" --authentication-type "password" --admin-username "admin" --admin-password "admin" --image "paloaltonetworks:vmseries1:bundle2:8.0.0" --size "Standard_DS3_v2" --nics "nic-ngfw-management" "nic-ngfw-untrust" "nic-ngfw-trust" --os-disk-name "osdisk-ngfw" --no-wait
+
+# Option 2: Deploy VM with Unmanaged Disks
+az vm create --resource-group "ResourceGroup" --location "westeurope" --name "ngfw" --availability-set "avset-ngfw" --authentication-type "password" --admin-username "admin" --admin-password "admin" --image "paloaltonetworks:vmseries1:bundle2:8.0.0" --size "Standard_DS3_v2" --nics "nic-ngfw-management" "nic-ngfw-untrust" "nic-ngfw-trust" --storage-sku "Standard_LRS" --storage-account "storageaccount" --no-wait
+
