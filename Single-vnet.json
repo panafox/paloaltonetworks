@@ -1,0 +1,146 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0",
+    "parameters": {  
+        "Firewall AvSet Name": {
+            "defaultValue": "avset-firewall",
+            "type": "String"
+        },        
+        "vNet Name": {
+            "defaultValue": "vnet-single",
+            "type": "String"
+        },
+        "Management Subnet Name": {
+            "defaultValue": "subnet-management",
+            "type": "String"
+        },
+        "Untrust Subnet Name": {
+            "defaultValue": "subnet-untrust",
+            "type": "String"
+        },
+        "Trust Subnet Name": {
+            "defaultValue": "subnet-trust",
+            "type": "String"
+        },        
+        "Firewall Name": {
+            "defaultValue": "ngfw",
+            "type": "String"
+        },        
+        "Management IP": {
+            "defaultValue": "10.1.0.4",
+            "type": "String"
+        },        
+        "Untrust IP": {
+            "defaultValue": "10.1.1.4",
+            "type": "String"
+        },        
+        "Trust IP": {
+            "defaultValue": "10.1.2.4",
+            "type": "String"
+        }        
+      },
+    "variables": {  },
+    "resources": [
+        {
+
+           "comments": "Availabiltiy Set for Backend Services",
+            "type": "Microsoft.Compute/availabilitySets",
+            "sku": {
+                "name": "Aligned"
+            },
+            "name": "[parameters('Firewall AvSet Name')]",
+            "apiVersion": "2016-04-30-preview",
+            "location": "[resourceGroup().location]",
+            "tags": {},
+            "scale": null,
+            "properties": {
+                "platformUpdateDomainCount": 5,
+                "platformFaultDomainCount": 2,
+                "virtualMachines": [ ]
+            },
+            "dependsOn": [ ]
+        },
+        {
+            "comments": "nic-[ngfw]-management'.",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat('nic-', parameters('Firewall Name'), '-management')]",
+            "apiVersion": "2017-03-01",
+            "location": "[resourceGroup().location]",
+            "scale": null,
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "[concat('nic-', parameters('Firewall Name'), '-management-ipconfig')]",
+                        "properties": {
+                            "privateIPAddress": "[parameters('Management IP')]",
+                            "privateIPAllocationMethod": "Static",
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('vNet Name')), '/subnets/', parameters('Management Subnet Name'))]"
+                            }
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": []
+                },
+                "enableIPForwarding": true
+            },
+            "dependsOn": [ ]
+        },    
+        {
+            "comments": "nic-[ngfw]-untrust'.",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat('nic-', parameters('Firewall Name'), '-untrust')]",
+            "apiVersion": "2017-03-01",
+            "location": "[resourceGroup().location]",
+            "scale": null,
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "[concat('nic-', parameters('Firewall Name'), '-untrust-ipconfig')]",
+                        "properties": {
+                            "privateIPAddress": "[parameters('Untrust IP')]",
+                            "privateIPAllocationMethod": "Static",
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('vNet Name')), '/subnets/', parameters('Untrust Subnet Name'))]"
+                            }
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": []
+                },
+                "enableIPForwarding": true
+            },
+            "dependsOn": [ ]
+        },    
+        {
+            "comments": "nic-[ngfw]-trust'.",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat('nic-', parameters('Firewall Name'), '-trust')]",
+            "apiVersion": "2017-03-01",
+            "location": "[resourceGroup().location]",
+            "scale": null,
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "[concat('nic-', parameters('Firewall Name'), '-trust-ipconfig')]",
+                        "properties": {
+                            "privateIPAddress": "[parameters('Trust IP')]",
+                            "privateIPAllocationMethod": "Static",
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('vNet Name')), '/subnets/', parameters('Trust Subnet Name'))]"
+                            }
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": []
+                },
+                "enableIPForwarding": true
+            },
+            "dependsOn": [ ]
+        }    
+    ],
+    "outputs": {  }
+}
